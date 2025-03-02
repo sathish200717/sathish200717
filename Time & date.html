@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Clock with Date</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #000;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            animation: background 5s infinite alternate;
+        }
+
+        @keyframes background {
+            0% {
+                background: #000000;
+            }
+            100% {
+                background: #1a1a1a;
+            }
+        }
+
+        .clock {
+            width: 400px;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 5px solid #00ffcc;
+            border-radius: 20px;
+            box-shadow: 0 0 20px #00ffcc;
+            text-align: center;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 10px #00ffcc;
+            }
+            to {
+                box-shadow: 0 0 25px #00ffff;
+            }
+        }
+
+        #time {
+            font-size: 60px;
+            color: #00ffcc;
+            text-shadow: 0 0 20px #00ffcc;
+            margin-bottom: 20px;
+        }
+
+        #date {
+            font-size: 25px;
+            color: #ffffff;
+            letter-spacing: 2px;
+        }
+
+        #day {
+            font-size: 20px;
+            margin-top: 10px;
+            color: #00ffcc;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            background: #00ffcc;
+            color: #000;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #00ffff;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+<div class="clock">
+    <div id="time"></div>
+    <div id="date"></div>
+    <div id="day"></div>
+    <button onclick="toggleMode()">Light/Dark Mode</button>
+</div>
+
+<script>
+    function updateTime() {
+        let now = new Date();
+        let time = now.toLocaleTimeString();
+        let date = now.toLocaleDateString();
+        let days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        let day = days[now.getDay()];
+
+        document.getElementById("time").innerHTML = time;
+        document.getElementById("date").innerHTML = date;
+        document.getElementById("day").innerHTML = "Day: " + day;
+    }
+
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    function toggleMode() {
+        let body = document.body;
+        body.classList.toggle("light-mode");
+        if (body.classList.contains("light-mode")) {
+            body.style.background = "#f0f0f0";
+            document.querySelector(".clock").style.background = "#ffffff";
+            document.querySelector(".clock").style.boxShadow = "0 0 20px #00ccff";
+            document.getElementById("time").style.color = "#00ccff";
+            document.getElementById("date").style.color = "#333";
+            document.getElementById("day").style.color = "#00ccff";
+        } else {
+            body.style.background = "#000";
+            document.querySelector(".clock").style.background = "rgba(0, 0, 0, 0.8)";
+            document.querySelector(".clock").style.boxShadow = "0 0 20px #00ffcc";
+            document.getElementById("time").style.color = "#00ffcc";
+            document.getElementById("date").style.color = "#ffffff";
+            document.getElementById("day").style.color = "#00ffcc";
+        }
+    }
+</script>
+
+</body>
+</html>
