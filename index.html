@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Custom Calendar with Notes</title>
+<style>
+    body {
+        font-family: "Poppins", sans-serif;
+        background-color: var(--bg-color, #f5f5f5);
+        color: var(--text-color, #333);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 10px;
+        color: var(--accent-color, #007bff);
+    }
+
+    .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 10px;
+        background: var(--card-bg, #fff);
+        padding: 15px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        width: 90%;
+        max-width: 700px;
+    }
+
+    .day {
+        text-align: center;
+        font-weight: bold;
+        color: var(--accent-color, #007bff);
+    }
+
+    .date {
+        background-color: var(--date-bg, #e9ecef);
+        padding: 15px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .date:hover {
+        background-color: var(--accent-color, #007bff);
+        color: white;
+        transform: scale(1.05);
+    }
+
+    .selected {
+        background-color: var(--accent-color, #007bff);
+        color: white;
+    }
+
+    .event-list {
+        margin-top: 20px;
+        background: var(--card-bg, #fff);
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        width: 90%;
+        max-width: 700px;
+    }
+
+    .event-item {
+        border-bottom: 1px solid #ddd;
+        padding: 8px 0;
+    }
+
+    .theme {
+        margin-top: 15px;
+    }
+
+    .theme label, .theme input {
+        cursor: pointer;
+    }
+
+    button {
+        background-color: var(--accent-color, #007bff);
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    button:hover {
+        opacity: 0.9;
+    }
+
+    textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        margin-top: 10px;
+    }
+
+</style>
+</head>
+<body>
+    <h1>📅 My Calendar</h1>
+    <div id="month-year"></div>
+    <div class="calendar" id="calendar"></div>
+
+    <div class="event-list">
+        <h3>📝 Add Event</h3>
+        <p id="selected-date-text">Select a date to add an event.</p>
+        <textarea id="event-text" placeholder="Enter your note or event..."></textarea>
+        <button onclick="addEvent()">Add Event</button>
+
+        <h3>📘 My Schedule</h3>
+        <div id="events"></div>
+    </div>
+
+    <div class="theme">
+        <h3>🎨 Customize Theme</h3>
+        <label>Accent Color: <input type="color" id="accentColor" onchange="changeColor()"></label>
+        <label>Background: <input type="color" id="bgColor" onchange="changeColor()"></label>
+    </div>
+
+<script>
+    const calendar = document.getElementById("calendar");
+    const monthYear = document.getElementById("month-year");
+    const eventsDiv = document.getElementById("events");
+    const selectedDateText = document.getElementById("selected-date-text");
+    let selectedDate = null;
+    const events = JSON.parse(localStorage.getItem("calendarEvents") || "{}");
+
+    const date = new Date();
+    const currentMonth = date.getMonth();
+    const currentYear = date.getFullYear();
+
+    const months = [
+        "January","February","March","April","May","June",
+        "July","August","September","October","November","December"
+    ];
+
+    function loadCalendar(month, year) {
+        calendar.innerHTML = "";
+        monthYear.textContent = `${months[month]} ${year}`;
+        const firstDay = new Date(year, month, 1).getDay();
+        const lastDate = new Date(year, month + 1, 0).getDate();
+
+        const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+        days.forEach(d => {
+            const div = document.createElement("div");
+            div.classList.add("day");
+            div.textContent = d;
+            calendar.appendChild(div);
+        });
+
+        for (let i = 0; i < firstDay; i++) {
+            const div = document.createElement("div");
+            calendar.appendChild(div);
+        }
+
+        for (let i = 1; i <= lastDate; i++) {
+            const div = document.createElement("div");
+            div.classList.add("date");
+            div.textContent = i;
+            div.onclick = () => selectDate(i, month, year, div);
+            calendar.appendChild(div);
+        }
+    }
+
+    function selectDate(day, month, year, element) {
+        document.querySelectorAll(".date").forEach(d => d.classList.remove("selected"));
+        element.classList.add("selected");
+        selectedDate = `${day}-${month + 1}-${year}`;
+        selectedDateText.textContent = `Selected Date: ${selectedDate}`;
+        showEvents();
+    }
+
+    function addEvent() {
+        if (!selectedDate) {
+            alert("Please select a date first!");
+            return;
+        }
+        const text = document.getElementById("event-text").value;
+        if (text.trim() === "") return alert("Enter an event!");
+
+        if (!events[selectedDate]) events[selectedDate] = [];
+        events[selectedDate].push(text);
+        localStorage.setItem("calendarEvents", JSON.stringify(events));
+
+        document.getElementById("event-text").value = "";
+        showEvents();
+    }
+
+    function showEvents() {
+        eventsDiv.innerHTML = "";
+        if (!selectedDate || !events[selectedDate]) return;
+        events[selectedDate].forEach((e, i) => {
+            const div = document.createElement("div");
+            div.classList.add("event-item");
+            div.textContent = e;
+            const del = document.createElement("button");
+            del.textContent = "❌";
+            del.style.marginLeft = "10px";
+            del.onclick = () => deleteEvent(i);
+            div.appendChild(del);
+            eventsDiv.appendChild(div);
+        });
+    }
+
+    function deleteEvent(i) {
+        events[selectedDate].splice(i, 1);
+        localStorage.setItem("calendarEvents", JSON.stringify(events));
+        showEvents();
+    }
+
+    function changeColor() {
+        const accent = document.getElementById("accentColor").value;
+        const bg = document.getElementById("bgColor").value;
+        document.body.style.setProperty("--accent-color", accent);
+        document.body.style.setProperty("--bg-color", bg);
+    }
+
+    loadCalendar(currentMonth, currentYear);
+</script>
+</body>
+  </html>
